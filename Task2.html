@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParentDiary</title>
+    <style>
+        /* Color scheme: pink, blue, green */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #fce4ec; /* light pink background */
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #81d4fa; /* blue */
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 { margin: 0; }
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .form-section, .dashboard {
+            background-color: #e8f5e9; /* green */
+            border-radius: 10px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            margin-bottom: 20px;
+            box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
+        }
+        form label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        form input, form select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #f48fb1; /* pink button */
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { background-color: #ec407a; }
+        .stats p {
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        canvas { margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>ParentDiary</h1>
+        <p>Track your child's daily activities easily</p>
+    </header>
+
+    <main>
+        <section class="form-section">
+            <h2>Log Daily Activity</h2>
+            <form id="activityForm">
+                <label>Feeding (ml):
+                    <input type="number" id="feeding" required>
+                </label>
+                <label>Nap Duration (hours):
+                    <input type="number" step="0.1" id="nap" required>
+                </label>
+                <label>Mood:
+                    <select id="mood">
+                        <option value="Happy">😊 Happy</option>
+                        <option value="Neutral">😐 Neutral</option>
+                        <option value="Sad">😢 Sad</option>
+                    </select>
+                </label>
+                <button type="submit">Add Activity</button>
+            </form>
+        </section>
+
+        <section class="dashboard">
+            <h2>Dashboard</h2>
+            <div class="stats">
+                <p>Total Feeding: <span id="totalFeeding">0</span> ml</p>
+                <p>Total Nap: <span id="totalNap">0</span> hours</p>
+                <p>Mood Summary: <span id="moodSummary">No data</span></p>
+            </div>
+            <canvas id="moodChart" width="400" height="200"></canvas>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const activityForm = document.getElementById('activityForm');
+        const totalFeedingEl = document.getElementById('totalFeeding');
+        const totalNapEl = document.getElementById('totalNap');
+        const moodSummaryEl = document.getElementById('moodSummary');
+        const moodChart = document.getElementById('moodChart').getContext('2d');
+
+        let activities = [];
+        const moodData = { Happy: 0, Neutral: 0, Sad: 0 };
+
+        let chart = new Chart(moodChart, {
+            type: 'bar',
+            data: {
+                labels: ['Happy', 'Neutral', 'Sad'],
+                datasets: [{
+                    label: 'Mood Count',
+                    data: [0, 0, 0],
+                    backgroundColor: ['#ff80ab', '#4fc3f7', '#81c784']
+                }]
+            },
+            options: {
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        activityForm.addEventListener('submit', function(e){
+            e.preventDefault();
+            const feeding = parseFloat(document.getElementById('feeding').value);
+            const nap = parseFloat(document.getElementById('nap').value);
+            const mood = document.getElementById('mood').value;
+
+            const activity = { feeding, nap, mood };
+            activities.push(activity);
+
+            // Update totals
+            const totalFeeding = activities.reduce((sum, act) => sum + act.feeding, 0);
+            const totalNap = activities.reduce((sum, act) => sum + act.nap, 0);
+
+            totalFeedingEl.textContent = totalFeeding;
+            totalNapEl.textContent = totalNap;
+
+            // Update mood data
+            moodData[mood]++;
+            moodSummaryEl.textContent = `Happy: ${moodData.Happy}, Neutral: ${moodData.Neutral}, Sad: ${moodData.Sad}`;
+
+            chart.data.datasets[0].data = [moodData.Happy, moodData.Neutral, moodData.Sad];
+            chart.update();
+
+            activityForm.reset();
+        });
+    </script>
+</body>
+</html>
